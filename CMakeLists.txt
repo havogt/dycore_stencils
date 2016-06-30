@@ -28,5 +28,5 @@ set(exe_LIBS -lpthread ${exe_LIBS} ${GTEST_BOTH_LIBRARIES})
 FILE(GLOB_RECURSE COMMON_INC "*.hpp")
 
 add_subdirectory( horizontal_diffusion )
-
+add_subdirectory( vertical_advection )
 

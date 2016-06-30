@@ -25,6 +25,14 @@ struct repository
         assert(m_fields_d[name]);
         return m_fields_d[name];
     }
+    void update_host(std::string name) {
+        cudaMemcpy(field_h(name), field_d( name), m_field_size * sizeof(Real), cudaMemcpyDeviceToHost);
+    }
+
+    void update_device(std::string name) {
+        cudaMemcpy(field_d(name), field_h( name), m_field_size * sizeof(Real), cudaMemcpyHostToDevice);
+    }
+
     IJKSize halo() { return m_halo;}
     IJKSize domain() { return m_domain; }
     
