@@ -44,7 +44,7 @@ TEST(HorizontalDiffusion, Test)
     
     repo.make_field("u_in");
     repo.make_field("u_out"); 
-    repo.make_field("u_coeff");
+    repo.make_field("coeff");
 //    ASSERT_TRUE(horizontal_diffusion::test(x, y, z, t, verify));
     launch_kernel(repo);
 }
