@@ -1,6 +1,7 @@
 #include "horizontal_diffusion.h"
-#include "repository.hpp"
-#include "utils.h"
+#include "../repository.hpp"
+#include "../utils.hpp"
+#include "horizontal_diffusion_reference.hpp"
 
 #define BLOCK_X_SIZE 32
 #define BLOCK_Y_SIZE 8
@@ -14,8 +15,9 @@
 
 #define PADDED_BOUNDARY 1
 
+inline
 __device__
-inline unsigned int cache_index(const unsigned int ipos, const unsigned int jpos) 
+unsigned int cache_index(const unsigned int ipos, const unsigned int jpos)
 {
     return (ipos+PADDED_BOUNDARY) + (jpos+HALO_BLOCK_Y_MINUS)*(BLOCK_X_SIZE+HALO_BLOCK_X_MINUS+HALO_BLOCK_X_PLUS);
 }
@@ -140,5 +142,6 @@ void launch_kernel(repository& repo)
     Real* coeff = repo.field_d("coeff");
    
     cukernel<<<blocks, threads,0>>>(in, out, coeff, domain, halo, strides);
+
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-void compute_strides(IJKSize const & domain, IJKSize & strides)
+inline void compute_strides(IJKSize const & domain, IJKSize & strides)
 {
     strides.m_i = 1;
     strides.m_j = strides.m_i * domain.m_i;

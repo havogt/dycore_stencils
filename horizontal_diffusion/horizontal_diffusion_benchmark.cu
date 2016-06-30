@@ -1,7 +1,9 @@
 #include "gtest/gtest.h"
-#include "Options.hpp"
+#include "../Options.hpp"
 #include "horizontal_diffusion.h"
-#include "repository.hpp"
+#include "../repository.hpp"
+#include "../verifier.hpp"
+#include "horizontal_diffusion_reference.hpp"
 
 int main(int argc, char** argv)
 {
@@ -45,7 +47,13 @@ TEST(HorizontalDiffusion, Test)
     repo.make_field("u_in");
     repo.make_field("u_out"); 
     repo.make_field("coeff");
-//    ASSERT_TRUE(horizontal_diffusion::test(x, y, z, t, verify));
+
     launch_kernel(repo);
+
+    horizontal_diffusion_reference ref(repo);
+    ref.generate_reference();
+
+    verifier verif(domain, halo, 1e-13);
+    ASSERT_TRUE(verif.verify(repo.field_h("u_diff_ref"), repo.field_h("u_out")));
 }
 

@@ -25,9 +25,8 @@ else()
 endif()
 set(exe_LIBS -lpthread ${exe_LIBS} ${GTEST_BOTH_LIBRARIES})
 
-cuda_add_executable( horizontal_diffusion horizontal_diffusion.cu horizontal_diffusion_benchmark.cu Options.cpp ${GTEST_FILES})
-target_link_libraries(horizontal_diffusion ${exe_LIBS} )
+FILE(GLOB_RECURSE COMMON_INC "*.hpp")
 
-#add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_cuda" "77 48 61")
-#add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/build/${srcfile}_cuda" "63 55 43")
+add_subdirectory( horizontal_diffusion )
+
 
