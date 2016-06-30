@@ -41,12 +41,12 @@ void cukernel(Real* in, Real* out, Real* coeff, const IJKSize domain, const IJKS
     const unsigned int iminus_limit = jboundary_limit + HALO_BLOCK_X_MINUS;
     const unsigned int iplus_limit = iminus_limit + HALO_BLOCK_X_PLUS;
 
-    const unsigned int block_size_i = (blockIdx.x + 1) * BLOCK_X_SIZE < domain.m_i
+    const unsigned int block_size_i = (blockIdx.x + 1) * BLOCK_X_SIZE < (domain.m_i-halo.m_i*2)
                                             ? BLOCK_X_SIZE
-                                            : domain.m_i - blockIdx.x * BLOCK_X_SIZE;
-    const unsigned int block_size_j = (blockIdx.y + 1) * BLOCK_Y_SIZE < domain.m_j
+                                            : (domain.m_i-halo.m_i*2) - blockIdx.x * BLOCK_X_SIZE;
+    const unsigned int block_size_j = (blockIdx.y + 1) * BLOCK_Y_SIZE < (domain.m_j-halo.m_j*2)
                                             ? BLOCK_Y_SIZE
-                                            : domain.m_j - blockIdx.y * BLOCK_Y_SIZE;
+                                            : (domain.m_j-halo.m_j*2) - blockIdx.y * BLOCK_Y_SIZE;
 
 
     if(threadIdx.y < jboundary_limit ) {
@@ -128,8 +128,8 @@ void launch_kernel(repository& repo)
     threads.y = BLOCK_Y_SIZE;
     threads.z = 1;
 
-    blocks.x = (domain.m_i + BLOCK_X_SIZE -1)/ BLOCK_X_SIZE;
-    blocks.y = (domain.m_j + BLOCK_Y_SIZE -1)/ BLOCK_Y_SIZE;
+    blocks.x = ( (domain.m_i-halo.m_i*2) + BLOCK_X_SIZE -1)/ BLOCK_X_SIZE;
+    blocks.y = ( (domain.m_j-halo.m_j*2) + BLOCK_Y_SIZE -1)/ BLOCK_Y_SIZE;
     blocks.z = 1;
     if(domain.m_i % 32 != 0 || domain.m_j % 8 != 0)
         std::cout << "ERROR: Domain sizes should be multiple of 32x8" << std::endl;
