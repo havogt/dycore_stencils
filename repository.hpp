@@ -16,8 +16,8 @@ struct repository {
     void make_field(std::string name) {
         Real *ptr = new Real[m_field_size];
         m_fields_h[name] = ptr;
-        Real* ptr_d;
-        cudaError_t error = cudaMalloc(&ptr_d, sizeof(Real)*m_field_size);
+        Real *ptr_d;
+        cudaError_t error = cudaMalloc(&ptr_d, sizeof(Real) * m_field_size);
         m_fields_d[name] = ptr_d;
     }
 
@@ -59,9 +59,11 @@ struct repository {
                     double z = dz * (double)(k - k_begin);
 
                     // u values between 5 and 9
-                    field[index(i, j, k, m_strides)] =
-                        offset1 + base1 * (offset2 + cos(PI * (spreadx*x + spready*y)) + base2 * sin(2 * PI * (spreadx*x + spready*y)*z)) / 4.;
-
+                    field[index(i, j, k, m_strides)] = offset1 +
+                                                       base1 *
+                                                           (offset2 + cos(PI * (spreadx * x + spready * y)) +
+                                                               base2 * sin(2 * PI * (spreadx * x + spready * y) * z)) /
+                                                           4.;
                 }
             }
         }
