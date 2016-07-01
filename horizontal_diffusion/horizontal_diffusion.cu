@@ -126,8 +126,6 @@ void launch_kernel(repository &repo) {
     blocks.x = (domain.m_i + BLOCK_X_SIZE - 1) / BLOCK_X_SIZE;
     blocks.y = (domain.m_j + BLOCK_Y_SIZE - 1) / BLOCK_Y_SIZE;
     blocks.z = 1;
-    if (domain.m_i % 32 != 0 || domain.m_j % 8 != 0)
-        std::cout << "ERROR: Domain sizes should be multiple of 32x8" << std::endl;
 
     IJKSize strides;
     compute_strides(domain, strides);

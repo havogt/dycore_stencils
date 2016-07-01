@@ -31,6 +31,7 @@ __global__ void cukernel(Real *u_stage,
     const IJKSize halo,
     const IJKSize strides) {
 
+        const IJKSize strides_ = strides;
         unsigned int ipos, jpos;
         int iblock_pos, jblock_pos;
         const unsigned int jboundary_limit = BLOCK_Y_SIZE + HALO_BLOCK_Y_MINUS + HALO_BLOCK_Y_PLUS;
@@ -61,9 +62,8 @@ __global__ void cukernel(Real *u_stage,
             iblock_pos = threadIdx.x % PADDED_BOUNDARY + BLOCK_X_SIZE;
             jblock_pos = threadIdx.x / PADDED_BOUNDARY;
         }
-
-        forward_sweep(ipos, jpos, iblock_pos, jblock_pos, block_size_i, block_size_j, 1, 0, ccol, dcol, wcon, u_stage, u_pos, utens, utens_stage, domain, strides);
-        backward_sweep(ipos, jpos, iblock_pos, jblock_pos, block_size_i, block_size_j, ccol, dcol, datacol, u_pos, utens_stage, domain, strides);
+        forward_sweep(ipos, jpos, iblock_pos, jblock_pos, block_size_i, block_size_j, 1, 0, ccol, dcol, wcon, u_stage, u_pos, utens, utens_stage, domain, strides_);
+        backward_sweep(ipos, jpos, iblock_pos, jblock_pos, block_size_i, block_size_j, ccol, dcol, datacol, u_pos, utens_stage, domain, strides_);
 }
 
 void launch_kernel(repository &repo) {
@@ -77,8 +77,6 @@ void launch_kernel(repository &repo) {
     blocks.x = (domain.m_i + BLOCK_X_SIZE - 1) / BLOCK_X_SIZE;
     blocks.y = (domain.m_j + BLOCK_Y_SIZE - 1) / BLOCK_Y_SIZE;
     blocks.z = 1;
-    if (domain.m_i % 32 != 0 || domain.m_j % 8 != 0)
-        std::cout << "ERROR: Domain sizes should be multiple of 32x8" << std::endl;
 
     IJKSize strides;
     compute_strides(domain, strides);
@@ -88,9 +86,9 @@ void launch_kernel(repository &repo) {
     Real *u_pos = repo.field_d("u_pos");
     Real *utens = repo.field_d("utens");
     Real *utens_stage = repo.field_d("utens_stage");
-    Real *ccol = repo.field_h("ccol");
-    Real *dcol = repo.field_h("dcol");
-    Real *datacol = repo.field_h("datacol");
+    Real *ccol = repo.field_d("ccol");
+    Real *dcol = repo.field_d("dcol");
+    Real *datacol = repo.field_d("datacol");
 
     cukernel<<< blocks, threads, 0 >>>(
         u_stage, wcon, u_pos, utens, ccol, dcol, datacol, utens_stage, domain, halo, strides);
