@@ -136,5 +136,5 @@ void launch_kernel(repository &repo) {
     Real *out = repo.field_d("u_out");
     Real *coeff = repo.field_d("coeff");
 
-    cukernel< < < blocks, threads, 0 > > >(in, out, coeff, domain, halo, strides);
+    cukernel<<< blocks, threads, 0 >>>(in, out, coeff, domain, halo, strides);
 }
