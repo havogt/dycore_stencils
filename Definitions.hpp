@@ -12,3 +12,10 @@ const int cNumBenchmarkRepetitions = 1000;
     typedef double Real;
     #define MPITYPE MPI_DOUBLE
 #endif
+
+#define DTR_STAGE (Real)3.0/(Real)20.0
+
+// define some physical constants
+#define BETA_V ((double)0.0)
+#define BET_M ((double)0.5 * ((double)1.0 - BETA_V))
+#define BET_P ((double)0.5 * ((double)1.0 + BETA_V))

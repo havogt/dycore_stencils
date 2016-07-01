@@ -40,20 +40,39 @@ TEST(HorizontalDiffusion, Test)
 
     if(t==0) t=1;
 
-    IJKSize domain(x,y,z);
-    IJKSize halo(1,1,0);
+    IJKSize domain(x, y, z);
+    IJKSize halo(2, 2, 0);
     repository repo(domain, halo);
-    
-    repo.make_field("u_in");
-    repo.make_field("u_out"); 
-    repo.make_field("coeff");
 
-    launch_kernel(repo);
+    repo.make_field("utens_stage");
+    repo.make_field("utens_stage_ref");
+    repo.make_field("u_stage");
+    repo.make_field("wcon");
+    repo.make_field("u_pos");
+    repo.make_field("utens");
 
-    horizontal_diffusion_reference ref(repo);
+    // utens_stage is an input/output field, so the reference needs to be set to same data as utens_stage
+    repo.fill_field("utens_stage", 3.2, 2.5, 0.95, 1.18, 18.4, 20.3);
+    repo.fill_field("utens_stage_ref", 3.2, 2.5, 0.95, 1.18, 18.4, 20.3);
+    repo.fill_field("u_stage", 2.2, 1.5, 0.95, 1.18, 18.4, 20.3);
+    repo.fill_field("wcon", 1.4, 0.3, 0.87, 1.11, 1.4, 2.3);
+    repo.fill_field("u_pos", 3.4, 0.7, 1.07, 1.51, 1.4, 2.3);
+    repo.fill_field("utens", 7.4, 4.3, 1.17, 0.91, 1.4, 2.3);
+
+    repo.update_device("utens_stage");
+    repo.update_device("utens_stage_ref");
+    repo.update_device("u_stage");
+    repo.update_device("wcon");
+    repo.update_device("u_pos");
+    repo.update_device("utens");
+
+//    launch_kernel(repo);
+
+    vertical_advection_reference ref(repo);
     ref.generate_reference();
 
-    verifier verif(domain, halo, 1e-13);
-    ASSERT_TRUE(verif.verify(repo.field_h("u_diff_ref"), repo.field_h("u_out")));
+    repo.update_host("utens_stage");
+    verifier verif(domain, halo, 1e-11);
+//    ASSERT_TRUE(verif.verify(repo.field_h("utens_stage_ref"), repo.field_h("utens_stage")));
 }
 
