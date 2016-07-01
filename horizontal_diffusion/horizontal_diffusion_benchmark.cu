@@ -52,6 +52,10 @@ TEST(HorizontalDiffusion, Test)
     repo.fill_field("u_out", 5.4, 1.2, 0.89, 1.15);
     repo.fill_field("coeff", 1.4, 0.3, 0.87, 1.11);
 
+    repo.update_device("u_in");
+    repo.update_device("u_out");
+    repo.update_device("coeff");
+
     launch_kernel(repo);
 
     horizontal_diffusion_reference ref(repo);
