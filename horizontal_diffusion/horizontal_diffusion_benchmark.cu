@@ -41,7 +41,7 @@ TEST(HorizontalDiffusion, Test)
     if(t==0) t=1;
 
     IJKSize domain(x,y,z);
-    IJKSize halo(1,1,0);
+    IJKSize halo(2,2,0);
     repository repo(domain, halo);
     
     repo.make_field("u_in");
@@ -57,6 +57,7 @@ TEST(HorizontalDiffusion, Test)
     horizontal_diffusion_reference ref(repo);
     ref.generate_reference();
 
+    repo.update_host("u_out");
     verifier verif(domain, halo, 1e-13);
     ASSERT_TRUE(verif.verify(repo.field_h("u_diff_ref"), repo.field_h("u_out")));
 }

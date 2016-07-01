@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 #include <assert.h>
+#include <cuda_runtime.h>
 #include "domain.hpp"
 #include "utils.hpp"
 
@@ -15,8 +16,8 @@ struct repository {
     void make_field(std::string name) {
         Real *ptr = new Real[m_field_size];
         m_fields_h[name] = ptr;
-        Real *ptr_d;
-        cudaMalloc(&ptr_d, sizeof(Real) * m_field_size);
+        Real* ptr_d;
+        cudaError_t error = cudaMalloc(&ptr_d, sizeof(Real)*m_field_size);
         m_fields_d[name] = ptr_d;
     }
 

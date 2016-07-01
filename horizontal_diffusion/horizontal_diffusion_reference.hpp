@@ -19,9 +19,9 @@ struct horizontal_diffusion_reference {
 
         Real *u_in = m_repo.field_h("u_in");
         Real *u_diff_ref = m_repo.field_h("u_diff_ref");
-        Real *lap = m_repo.field_h("lap");
-        Real *flx = m_repo.field_h("flx");
-        Real *fly = m_repo.field_h("fly");
+        Real *lap = m_repo.field_h("lap_ref");
+        Real *flx = m_repo.field_h("flx_ref");
+        Real *fly = m_repo.field_h("fly_ref");
         Real *coeff = m_repo.field_h("coeff");
 
         IJKSize domain = m_repo.domain();
