@@ -64,5 +64,5 @@ struct horizontal_diffusion_reference {
     }
 
   private:
-    repository m_repo;
+    repository& m_repo;
 };
