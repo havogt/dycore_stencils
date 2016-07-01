@@ -48,9 +48,9 @@ TEST(HorizontalDiffusion, Test)
     repo.make_field("u_out"); 
     repo.make_field("coeff");
 
-    repo.fill_field("u_in", 3.0, 2.5, 1.25, 0.78);
-    repo.fill_field("u_out", 5.4, 1.2, 0.89, 1.15);
-    repo.fill_field("coeff", 1.4, 0.3, 0.87, 1.11);
+    repo.fill_field("u_in", 3.0, 2.5, 1.25, 0.78, 18.4, 20.3);
+    repo.init_field("u_out", 5.4);
+    repo.fill_field("coeff", 1.4, 0.3, 0.87, 1.11, 1.4, 2.3);
 
     repo.update_device("u_in");
     repo.update_device("u_out");
@@ -62,7 +62,7 @@ TEST(HorizontalDiffusion, Test)
     ref.generate_reference();
 
     repo.update_host("u_out");
-    verifier verif(domain, halo, 1e-13);
+    verifier verif(domain, halo, 1e-11);
     ASSERT_TRUE(verif.verify(repo.field_h("u_diff_ref"), repo.field_h("u_out")));
 }
 

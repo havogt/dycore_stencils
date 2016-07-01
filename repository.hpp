@@ -37,7 +37,7 @@ struct repository {
         cudaMemcpy(field_d(name), field_h(name), m_field_size * sizeof(Real), cudaMemcpyHostToDevice);
     }
 
-    void fill_field(std::string name, Real offset1, Real offset2, Real base1, Real base2) {
+    void fill_field(std::string name, Real offset1, Real offset2, Real base1, Real base2, Real spreadx, Real spready) {
         const unsigned int i_begin = 0;
         const unsigned int i_end = m_domain.m_i;
         const unsigned int j_begin = 0;
@@ -60,7 +60,7 @@ struct repository {
 
                     // u values between 5 and 9
                     field[index(i, j, k, m_strides)] =
-                        offset1 + base1 * (offset2 + cos(PI * (x + y)) + base2 * sin(2 * PI * (x + y)*z)) / 4.;
+                        offset1 + base1 * (offset2 + cos(PI * (spreadx*x + spready*y)) + base2 * sin(2 * PI * (spreadx*x + spready*y)*z)) / 4.;
 
                 }
             }

@@ -44,7 +44,7 @@ struct horizontal_diffusion_reference {
                     if (flx[index(i, j, k, strides)] *
                             (u_in[index(i + 1, j, k, strides)] - u_in[index(i, j, k, strides)]) >
                         0)
-                        flx[index(i, j, k, strides)] = 0.;
+                    flx[index(i, j, k, strides)] = 0.;
                 }
             }
             for (unsigned int i = halo.m_i; i < domain.m_i - halo.m_i; ++i) {
@@ -58,12 +58,12 @@ struct horizontal_diffusion_reference {
             }
             for (unsigned int i = halo.m_i; i < domain.m_i - halo.m_i; ++i) {
                 for (unsigned int j = halo.m_j; j < domain.m_j - halo.m_j; ++j) {
-                    u_diff_ref[index(i, j, k, strides)] =
-                        u_in[index(i, j, k, strides)] -
+                    u_diff_ref[index(i, j, k, strides)] = u_in[index(i, j, k, strides)] -
                         coeff[index(i, j, k, strides)] *
                             (flx[index(i, j, k, strides)] - flx[index(i - 1, j, k, strides)] +
                                 fly[index(i, j, k, strides)] - fly[index(i, j - 1, k, strides)]);
-                }
+
+                                }
             }
         }
     }

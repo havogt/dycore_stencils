@@ -49,36 +49,40 @@ void cukernel(Real* in, Real* out, Real* coeff, const IJKSize domain, const IJKS
                                             : domain.m_j - blockIdx.y * BLOCK_Y_SIZE;
 
 
+    // set the thread position by default out of the block
+    iblock_pos = -HALO_BLOCK_X_MINUS-1;
+    jblock_pos = -HALO_BLOCK_Y_MINUS-1;
     if(threadIdx.y < jboundary_limit ) {
         ipos = blockIdx.x * BLOCK_X_SIZE + threadIdx.x + halo.m_i;
         jpos = blockIdx.y * BLOCK_Y_SIZE + threadIdx.y - HALO_BLOCK_Y_MINUS + halo.m_j;
         iblock_pos = threadIdx.x;
         jblock_pos = threadIdx.y - HALO_BLOCK_Y_MINUS;
     }
-    else if( threadIdx.y < iminus_limit)
+    else if( threadIdx.y < iminus_limit && threadIdx.x < BLOCK_Y_SIZE*PADDED_BOUNDARY)
     {
-        ipos = blockIdx.x * BLOCK_X_SIZE - PADDED_BOUNDARY + threadIdx.x % PADDED_BOUNDARY;
-        jpos = blockIdx.y * BLOCK_Y_SIZE + threadIdx.x / PADDED_BOUNDARY - HALO_BLOCK_Y_MINUS;
+        ipos = blockIdx.x * BLOCK_X_SIZE - PADDED_BOUNDARY + threadIdx.x % PADDED_BOUNDARY + halo.m_i;
+        jpos = blockIdx.y * BLOCK_Y_SIZE + threadIdx.x / PADDED_BOUNDARY + halo.m_j;
         iblock_pos = -PADDED_BOUNDARY + (int)threadIdx.x % PADDED_BOUNDARY;
-        jblock_pos = threadIdx.x / PADDED_BOUNDARY - HALO_BLOCK_Y_MINUS;
+        jblock_pos = threadIdx.x / PADDED_BOUNDARY;
     }
-    else if( threadIdx.y < iplus_limit)
+    else if( threadIdx.y < iplus_limit && threadIdx.x < BLOCK_Y_SIZE*PADDED_BOUNDARY)
     {
         ipos = blockIdx.x * BLOCK_X_SIZE + threadIdx.x % PADDED_BOUNDARY +
-              BLOCK_X_SIZE;
-        jpos = blockIdx.y * BLOCK_Y_SIZE + threadIdx.x / PADDED_BOUNDARY - HALO_BLOCK_Y_MINUS;
+              BLOCK_X_SIZE + halo.m_i;
+        jpos = blockIdx.y * BLOCK_Y_SIZE + threadIdx.x / PADDED_BOUNDARY + halo.m_j;
         iblock_pos = threadIdx.x % PADDED_BOUNDARY + BLOCK_X_SIZE;
-        jblock_pos = threadIdx.x / PADDED_BOUNDARY - BLOCK_Y_SIZE;
+        jblock_pos = threadIdx.x / PADDED_BOUNDARY;
     }
 
-    __shared__ Real lap[(BLOCK_X_SIZE+HALO_BLOCK_X_MINUS + HALO_BLOCK_X_PLUS)*(BLOCK_Y_SIZE+2)]; 
-    __shared__ Real flx[(BLOCK_X_SIZE+1)*(BLOCK_Y_SIZE)];
-    __shared__ Real fly[(BLOCK_X_SIZE)*(BLOCK_Y_SIZE+1)];
-   
-    
+    // flx and fly can be defined with smaller cache sizes, however in order to reuse the same cache_index function, I defined them here
+    // with same size. shared memory pressure should not be too high nevertheless
+#define CACHE_SIZE (BLOCK_X_SIZE+HALO_BLOCK_X_MINUS + HALO_BLOCK_X_PLUS)*(BLOCK_Y_SIZE+2)
+    __shared__ Real lap[CACHE_SIZE]; 
+    __shared__ Real flx[CACHE_SIZE];
+    __shared__ Real fly[CACHE_SIZE];
+  
     for(int kpos=0; kpos < domain.m_k; ++kpos)
     {
-
 
         if(is_in_domain<-1,1,-1,1>(iblock_pos, jblock_pos, block_size_i, block_size_j) ) {
 
@@ -90,7 +94,6 @@ void cukernel(Real* in, Real* out, Real* coeff, const IJKSize domain, const IJKS
 
 
         if( is_in_domain<-1,0,0,0>(iblock_pos, jblock_pos, block_size_i, block_size_j) ) {
-    
             flx[ cache_index(iblock_pos, jblock_pos)] = lap[cache_index(iblock_pos+1, jblock_pos)] - lap[cache_index(iblock_pos, jblock_pos)];
             if ( flx[ cache_index(iblock_pos, jblock_pos)] * (in[index(ipos+1, jpos, kpos, strides)] - in[index(ipos, jpos, kpos, strides)] ) > 0) {
                 flx[ cache_index(iblock_pos, jblock_pos)] = 0.;
@@ -100,7 +103,6 @@ void cukernel(Real* in, Real* out, Real* coeff, const IJKSize domain, const IJKS
         __syncthreads();
 
          if( is_in_domain<0,0,-1,0>(iblock_pos, jblock_pos, block_size_i, block_size_j) ) {
-    
             fly[ cache_index(iblock_pos, jblock_pos)] = lap[cache_index(iblock_pos, jblock_pos+1)] - lap[cache_index(iblock_pos, jblock_pos)];
             if ( fly[ cache_index(iblock_pos, jblock_pos)] * (in[index(ipos, jpos+1, kpos, strides)] - in[index(ipos, jpos, kpos, strides)] ) > 0) {
                 fly[ cache_index(iblock_pos, jblock_pos)] = 0.;
@@ -108,12 +110,12 @@ void cukernel(Real* in, Real* out, Real* coeff, const IJKSize domain, const IJKS
         }
 
         __syncthreads();
-       
+      
         if( is_in_domain<0,0,0,0>(iblock_pos, jblock_pos, block_size_i, block_size_j) ) {
-            out[index(ipos, jpos, kpos, strides)]=in[index(ipos, jpos, kpos, strides)] - coeff[index(ipos, jpos, kpos, strides)] *
+            out[index(ipos, jpos, kpos, strides)]=
+            in[index(ipos, jpos, kpos, strides)] - coeff[index(ipos, jpos, kpos, strides)] *
                 (flx[cache_index(iblock_pos, jblock_pos)]- flx[cache_index(iblock_pos-1, jblock_pos)] + fly[cache_index(iblock_pos, jblock_pos)]- fly[cache_index(iblock_pos, jblock_pos-1)]);
         }
-
     }
 
 }
@@ -125,9 +127,8 @@ void launch_kernel(repository& repo)
 
     dim3 threads, blocks;
     threads.x = BLOCK_X_SIZE;
-    threads.y = BLOCK_Y_SIZE;
+    threads.y = BLOCK_Y_SIZE + HALO_BLOCK_Y_MINUS+HALO_BLOCK_Y_PLUS+ (HALO_BLOCK_X_MINUS>0?1:0) + (HALO_BLOCK_X_PLUS>0?1:0);
     threads.z = 1;
-
     blocks.x = (domain.m_i + BLOCK_X_SIZE -1)/ BLOCK_X_SIZE;
     blocks.y = (domain.m_j + BLOCK_Y_SIZE -1)/ BLOCK_Y_SIZE;
     blocks.z = 1;
