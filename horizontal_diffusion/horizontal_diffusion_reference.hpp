@@ -12,6 +12,11 @@ struct horizontal_diffusion_reference {
         m_repo.make_field("flx_ref");
         m_repo.make_field("fly_ref");
 
+        m_repo.init_field("u_diff_ref", 0.0);
+        m_repo.init_field("lap_ref", 0.0);
+        m_repo.init_field("flx_ref", 0.0);
+        m_repo.init_field("fly_ref", 0.0);
+
         Real *u_in = m_repo.field_h("u_in");
         Real *u_diff_ref = m_repo.field_h("u_diff_ref");
         Real *lap = m_repo.field_h("lap");
