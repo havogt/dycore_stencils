@@ -66,6 +66,18 @@ TEST(HorizontalDiffusion, Test)
     repo.update_device("u_pos");
     repo.update_device("utens");
 
+    repo.make_field("ccol");
+    repo.make_field("dcol");
+    repo.make_field("datacol");
+
+    repo.init_field("ccol", -1.0);
+    repo.init_field("dcol", -1.0);
+    repo.init_field("datacol", -1.0);
+
+    repo.update_device("ccol");
+    repo.update_device("dcol");
+    repo.update_device("datacol");
+
 //    launch_kernel(repo);
 
     vertical_advection_reference ref(repo);

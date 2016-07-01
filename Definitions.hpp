@@ -19,3 +19,9 @@ const int cNumBenchmarkRepetitions = 1000;
 #define BETA_V ((double)0.0)
 #define BET_M ((double)0.5 * ((double)1.0 - BETA_V))
 #define BET_P ((double)0.5 * ((double)1.0 + BETA_V))
+
+#ifdef __CUDACC__
+#define GT_FUNCTION __host__ __device__ __forceinline__
+#else
+#define GT_FUNCTION inline
+#endif
