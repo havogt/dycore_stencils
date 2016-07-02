@@ -4,6 +4,7 @@
 #include "../repository.hpp"
 #include "../verifier.hpp"
 #include "vertical_advection_reference.hpp"
+#include "../timer_cuda.hpp"
 
 int main(int argc, char** argv)
 {
@@ -73,7 +74,7 @@ TEST(HorizontalDiffusion, Test)
     repo.make_field("v_pos");
     repo.make_field("vtens");
 
-    // utens_stage is an input/output field, so the reference needs to be set to same data as utens_stage
+    // vtens_stage is an input/output field, so the reference needs to be set to same data as utens_stage
     repo.fill_field("vtens_stage", 3.3, 2.4, 0.95, 1.18, 18.4, 20.3);
     repo.fill_field("vtens_stage_ref", 3.3, 2.4, 0.95, 1.18, 18.4, 20.3);
     repo.fill_field("v_stage", 2.3, 1.5, 0.95, 1.14, 18.4, 20.3);
@@ -88,6 +89,27 @@ TEST(HorizontalDiffusion, Test)
     repo.update_device("v_pos");
     repo.update_device("vtens");
 
+    repo.make_field("wtens_stage");
+    repo.make_field("wtens_stage_ref");
+    repo.make_field("w_stage");
+    repo.make_field("wcon");
+    repo.make_field("w_pos");
+    repo.make_field("wtens");
+
+    // vtens_stage is an input/output field, so the reference needs to be set to same data as utens_stage
+    repo.fill_field("wtens_stage", 3.3, 2.4, 0.95, 1.18, 18.4, 20.3);
+    repo.fill_field("wtens_stage_ref", 3.3, 2.4, 0.95, 1.18, 18.4, 20.3);
+    repo.fill_field("w_stage", 2.3, 1.5, 0.95, 1.14, 18.4, 20.3);
+    repo.fill_field("wcon", 1.3, 0.3, 0.87, 1.14, 1.4, 2.3);
+    repo.fill_field("w_pos", 3.3, 0.7, 1.07, 1.71, 1.4, 2.3);
+    repo.fill_field("wtens", 7.3, 4.3, 1.17, 0.71, 1.4, 2.3);
+
+    repo.update_device("wtens_stage");
+    repo.update_device("wtens_stage_ref");
+    repo.update_device("w_stage");
+    repo.update_device("wcon");
+    repo.update_device("w_pos");
+    repo.update_device("wtens");
 
     repo.make_field("ccol");
     repo.make_field("dcol");
@@ -101,13 +123,26 @@ TEST(HorizontalDiffusion, Test)
     repo.update_device("dcol");
     repo.update_device("datacol");
 
-    launch_kernel(repo);
+    launch_kernel(repo,NULL);
 
     vertical_advection_reference ref(repo);
     ref.generate_reference();
 
     repo.update_host("utens_stage");
+    repo.update_host("vtens_stage");
+    repo.update_host("wtens_stage");
+
     verifier verif(domain, halo, 1e-11);
     ASSERT_TRUE(verif.verify(repo.field_h("utens_stage_ref"), repo.field_h("utens_stage")));
+    ASSERT_TRUE(verif.verify(repo.field_h("vtens_stage_ref"), repo.field_h("vtens_stage")));
+    ASSERT_TRUE(verif.verify(repo.field_h("wtens_stage_ref"), repo.field_h("wtens_stage")));
+
+    timer_cuda time("vertical_advection");
+    for(unsigned int i=0; i < cNumBenchmarkRepetitions; ++i)
+    {
+        launch_kernel(repo, &time);
+    }
+
+    std::cout << "Time for VERTICAL ADVECTION: " << time.total_time() << std::endl;
 }
 
