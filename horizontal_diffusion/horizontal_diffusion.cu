@@ -2,6 +2,7 @@
 #include "../repository.hpp"
 #include "../utils.hpp"
 #include "horizontal_diffusion_reference.hpp"
+#include "../functions.hpp"
 
 #define BLOCK_X_SIZE 32
 #define BLOCK_Y_SIZE 8
@@ -17,13 +18,6 @@
 inline __device__ unsigned int cache_index(const unsigned int ipos, const unsigned int jpos) {
     return (ipos + PADDED_BOUNDARY) +
            (jpos + HALO_BLOCK_Y_MINUS) * (BLOCK_X_SIZE + HALO_BLOCK_X_MINUS + HALO_BLOCK_X_PLUS);
-}
-
-template < int IMinusExtent, int IPlusExtent, int JMinusExtent, int JPlusExtent >
-__device__ inline bool is_in_domain(
-    const int iblock_pos, const int jblock_pos, const unsigned int block_size_i, const unsigned int block_size_j) {
-    return (iblock_pos >= IMinusExtent && iblock_pos < ((int)block_size_i + IPlusExtent) &&
-            jblock_pos >= JMinusExtent && jblock_pos < ((int)block_size_j + JPlusExtent));
 }
 
 __global__ void cukernel(
