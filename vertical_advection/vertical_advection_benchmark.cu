@@ -66,6 +66,29 @@ TEST(HorizontalDiffusion, Test)
     repo.update_device("u_pos");
     repo.update_device("utens");
 
+    repo.make_field("vtens_stage");
+    repo.make_field("vtens_stage_ref");
+    repo.make_field("v_stage");
+    repo.make_field("wcon");
+    repo.make_field("v_pos");
+    repo.make_field("vtens");
+
+    // utens_stage is an input/output field, so the reference needs to be set to same data as utens_stage
+    repo.fill_field("vtens_stage", 3.3, 2.4, 0.95, 1.18, 18.4, 20.3);
+    repo.fill_field("vtens_stage_ref", 3.3, 2.4, 0.95, 1.18, 18.4, 20.3);
+    repo.fill_field("v_stage", 2.3, 1.5, 0.95, 1.14, 18.4, 20.3);
+    repo.fill_field("wcon", 1.3, 0.3, 0.87, 1.14, 1.4, 2.3);
+    repo.fill_field("v_pos", 3.3, 0.7, 1.07, 1.71, 1.4, 2.3);
+    repo.fill_field("vtens", 7.3, 4.3, 1.17, 0.71, 1.4, 2.3);
+
+    repo.update_device("vtens_stage");
+    repo.update_device("vtens_stage_ref");
+    repo.update_device("v_stage");
+    repo.update_device("wcon");
+    repo.update_device("v_pos");
+    repo.update_device("vtens");
+
+
     repo.make_field("ccol");
     repo.make_field("dcol");
     repo.make_field("datacol");
