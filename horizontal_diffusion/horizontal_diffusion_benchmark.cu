@@ -4,6 +4,7 @@
 #include "../repository.hpp"
 #include "../verifier.hpp"
 #include "horizontal_diffusion_reference.hpp"
+#include "../timer_cuda.hpp"
 
 int main(int argc, char **argv) {
 
@@ -56,7 +57,7 @@ TEST(HorizontalDiffusion, Test) {
     repo.update_device("u_out");
     repo.update_device("coeff");
 
-    launch_kernel(repo);
+    launch_kernel(repo, NULL);
 
     horizontal_diffusion_reference ref(repo);
     ref.generate_reference();
@@ -64,4 +65,13 @@ TEST(HorizontalDiffusion, Test) {
     repo.update_host("u_out");
     verifier verif(domain, halo, 1e-11);
     ASSERT_TRUE(verif.verify(repo.field_h("u_diff_ref"), repo.field_h("u_out")));
+
+    timer_cuda time("vertical_advection");
+    for(unsigned int i=0; i < cNumBenchmarkRepetitions; ++i)
+    {
+        launch_kernel(repo, &time);
+    }
+
+    std::cout << "Time for HORIZONTAL DIFFUSION: " << time.total_time() << std::endl;
+
 }

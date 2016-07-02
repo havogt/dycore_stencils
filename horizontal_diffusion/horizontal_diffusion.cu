@@ -114,7 +114,7 @@ __global__ void cukernel(
     }
 }
 
-void launch_kernel(repository &repo) {
+void launch_kernel(repository &repo, timer_cuda* time) {
     IJKSize domain = repo.domain();
     IJKSize halo = repo.halo();
 
@@ -134,5 +134,7 @@ void launch_kernel(repository &repo) {
     Real *out = repo.field_d("u_out");
     Real *coeff = repo.field_d("coeff");
 
+    if(time) time->start();
     cukernel<<< blocks, threads, 0 >>>(in, out, coeff, domain, halo, strides);
+    if(time) time->pause();
 }
