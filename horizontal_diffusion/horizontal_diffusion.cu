@@ -73,9 +73,9 @@ __global__ void cukernel(
         if (is_in_domain< -1, 1, -1, 1 >(iblock_pos, jblock_pos, block_size_i, block_size_j)) {
 
             lap[cache_index(iblock_pos, jblock_pos)] =
-                (Real)4 * in[index(ipos, jpos, kpos, strides)] -
-                (in[index(ipos + 1, jpos, kpos, strides)] + in[index(ipos - 1, jpos, kpos, strides)] +
-                    in[index(ipos, jpos + 1, kpos, strides)] + in[index(ipos, jpos - 1, kpos, strides)]);
+                (Real)4 * __ldg(& in[index(ipos, jpos, kpos, strides)] ) -
+                ( __ldg(& in[index(ipos + 1, jpos, kpos, strides)] ) + __ldg(& in[index(ipos - 1, jpos, kpos, strides)] ) +
+                    __ldg(&in[index(ipos, jpos + 1, kpos, strides)]) + __ldg(&in[index(ipos, jpos - 1, kpos, strides)]));
         }
 
         __syncthreads();
@@ -84,7 +84,7 @@ __global__ void cukernel(
             flx[cache_index(iblock_pos, jblock_pos)] =
                 lap[cache_index(iblock_pos + 1, jblock_pos)] - lap[cache_index(iblock_pos, jblock_pos)];
             if (flx[cache_index(iblock_pos, jblock_pos)] *
-                    (in[index(ipos + 1, jpos, kpos, strides)] - in[index(ipos, jpos, kpos, strides)]) >
+                    (__ldg(&in[index(ipos + 1, jpos, kpos, strides)]) - __ldg(&in[index(ipos, jpos, kpos, strides)])) >
                 0) {
                 flx[cache_index(iblock_pos, jblock_pos)] = 0.;
             }
@@ -96,7 +96,7 @@ __global__ void cukernel(
             fly[cache_index(iblock_pos, jblock_pos)] =
                 lap[cache_index(iblock_pos, jblock_pos + 1)] - lap[cache_index(iblock_pos, jblock_pos)];
             if (fly[cache_index(iblock_pos, jblock_pos)] *
-                    (in[index(ipos, jpos + 1, kpos, strides)] - in[index(ipos, jpos, kpos, strides)]) >
+                    (__ldg(&in[index(ipos, jpos + 1, kpos, strides)]) - __ldg(&in[index(ipos, jpos, kpos, strides)])) >
                 0) {
                 fly[cache_index(iblock_pos, jblock_pos)] = 0.;
             }
@@ -106,7 +106,7 @@ __global__ void cukernel(
 
         if (is_in_domain< 0, 0, 0, 0 >(iblock_pos, jblock_pos, block_size_i, block_size_j)) {
             out[index(ipos, jpos, kpos, strides)] =
-                in[index(ipos, jpos, kpos, strides)] -
+                __ldg(&in[index(ipos, jpos, kpos, strides)]) -
                 coeff[index(ipos, jpos, kpos, strides)] *
                     (flx[cache_index(iblock_pos, jblock_pos)] - flx[cache_index(iblock_pos - 1, jblock_pos)] +
                         fly[cache_index(iblock_pos, jblock_pos)] - fly[cache_index(iblock_pos, jblock_pos - 1)]);
@@ -126,8 +126,6 @@ void launch_kernel(repository &repo) {
     blocks.x = (domain.m_i + BLOCK_X_SIZE - 1) / BLOCK_X_SIZE;
     blocks.y = (domain.m_j + BLOCK_Y_SIZE - 1) / BLOCK_Y_SIZE;
     blocks.z = 1;
-    if (domain.m_i % 32 != 0 || domain.m_j % 8 != 0)
-        std::cout << "ERROR: Domain sizes should be multiple of 32x8" << std::endl;
 
     IJKSize strides;
     compute_strides(domain, strides);

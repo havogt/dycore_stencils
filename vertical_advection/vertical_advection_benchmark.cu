@@ -101,13 +101,13 @@ TEST(HorizontalDiffusion, Test)
     repo.update_device("dcol");
     repo.update_device("datacol");
 
-//    launch_kernel(repo);
+    launch_kernel(repo);
 
     vertical_advection_reference ref(repo);
     ref.generate_reference();
 
     repo.update_host("utens_stage");
     verifier verif(domain, halo, 1e-11);
-//    ASSERT_TRUE(verif.verify(repo.field_h("utens_stage_ref"), repo.field_h("utens_stage")));
+    ASSERT_TRUE(verif.verify(repo.field_h("utens_stage_ref"), repo.field_h("utens_stage")));
 }
 

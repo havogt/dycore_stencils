@@ -8,7 +8,7 @@ inline void compute_strides(IJKSize const & domain, IJKSize & strides)
 }
 
 __host__ __device__
-inline unsigned int index(const unsigned int ipos, const unsigned int jpos, const unsigned int kpos, const IJKSize strides)
+inline unsigned int index(const unsigned int ipos, const unsigned int jpos, const unsigned int kpos, IJKSize const & strides)
 {
     return ipos*strides.m_i + jpos*strides.m_j + kpos*strides.m_k;
 }
