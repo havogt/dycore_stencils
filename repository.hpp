@@ -9,7 +9,7 @@
 struct repository {
 
     repository(IJKSize domain, IJKSize halo)
-        : m_domain(domain), m_halo(halo), m_field_size(domain.m_i * domain.m_j * domain.m_k) {
+        : m_domain(domain), m_halo(halo), m_field_size((domain.m_i+halo.m_i*2) * (domain.m_j+halo.m_j*2) * domain.m_k) {
         compute_strides(m_domain, m_strides);
     }
 
