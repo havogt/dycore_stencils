@@ -77,7 +77,7 @@ __global__ void cukernel(
             lap[cache_index(iblock_pos, jblock_pos)] =
                 (Real)4 * __ldg(& in[index_] ) -
                 ( __ldg(& in[index_+index(1, 0,0, strides)] ) + __ldg(& in[index_ - index(1, 0,0, strides)] ) +
-                    __ldg(&in[index_+index(0, 1, 0, strides)]) + __ldg(&in[index_ - index(0, - 1, 0, strides)]));
+                    __ldg(&in[index_+index(0, 1, 0, strides)]) + __ldg(&in[index_ - index(0, 1, 0, strides)]));
         }
 
         __syncthreads();
