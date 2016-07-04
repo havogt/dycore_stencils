@@ -54,6 +54,8 @@ __global__ void cukernel(
         jblock_pos = threadIdx.x / PADDED_BOUNDARY;
     }
 
+    int index_ = index(ipos, jpos, 0, strides);
+
 // flx and fly can be defined with smaller cache sizes, however in order to reuse the same cache_index function, I
 // defined them here
 // with same size. shared memory pressure should not be too high nevertheless
@@ -67,9 +69,9 @@ __global__ void cukernel(
         if (is_in_domain< -1, 1, -1, 1 >(iblock_pos, jblock_pos, block_size_i, block_size_j)) {
 
             lap[cache_index(iblock_pos, jblock_pos)] =
-                (Real)4 * __ldg(& in[index(ipos, jpos, kpos, strides)] ) -
-                ( __ldg(& in[index(ipos + 1, jpos, kpos, strides)] ) + __ldg(& in[index(ipos - 1, jpos, kpos, strides)] ) +
-                    __ldg(&in[index(ipos, jpos + 1, kpos, strides)]) + __ldg(&in[index(ipos, jpos - 1, kpos, strides)]));
+                (Real)4 * __ldg(& in[index_] ) -
+                ( __ldg(& in[index_+index(1, 0,0, strides)] ) + __ldg(& in[index_ - index(1, 0,0, strides)] ) +
+                    __ldg(&in[index_+index(0, 1, 0, strides)]) + __ldg(&in[index_ - index(0, 1, 0, strides)]));
         }
 
         __syncthreads();
@@ -78,7 +80,7 @@ __global__ void cukernel(
             flx[cache_index(iblock_pos, jblock_pos)] =
                 lap[cache_index(iblock_pos + 1, jblock_pos)] - lap[cache_index(iblock_pos, jblock_pos)];
             if (flx[cache_index(iblock_pos, jblock_pos)] *
-                    (__ldg(&in[index(ipos + 1, jpos, kpos, strides)]) - __ldg(&in[index(ipos, jpos, kpos, strides)])) >
+                    (__ldg(&in[index_+index(1, 0, 0, strides)]) - __ldg(&in[index_])) >
                 0) {
                 flx[cache_index(iblock_pos, jblock_pos)] = 0.;
             }
@@ -88,7 +90,7 @@ __global__ void cukernel(
             fly[cache_index(iblock_pos, jblock_pos)] =
                 lap[cache_index(iblock_pos, jblock_pos + 1)] - lap[cache_index(iblock_pos, jblock_pos)];
             if (fly[cache_index(iblock_pos, jblock_pos)] *
-                    (__ldg(&in[index(ipos, jpos + 1, kpos, strides)]) - __ldg(&in[index(ipos, jpos, kpos, strides)])) >
+                    (__ldg(&in[index_+index(0, 1, 0, strides)]) - __ldg(&in[index_])) >
                 0) {
                 fly[cache_index(iblock_pos, jblock_pos)] = 0.;
             }
@@ -97,12 +99,14 @@ __global__ void cukernel(
         __syncthreads();
 
         if (is_in_domain< 0, 0, 0, 0 >(iblock_pos, jblock_pos, block_size_i, block_size_j)) {
-            out[index(ipos, jpos, kpos, strides)] =
-                __ldg(&in[index(ipos, jpos, kpos, strides)]) -
-                coeff[index(ipos, jpos, kpos, strides)] *
+            out[index_] =
+                __ldg(&in[index_]) -
+                coeff[index_] *
                     (flx[cache_index(iblock_pos, jblock_pos)] - flx[cache_index(iblock_pos - 1, jblock_pos)] +
                         fly[cache_index(iblock_pos, jblock_pos)] - fly[cache_index(iblock_pos, jblock_pos - 1)]);
         }
+
+        index_ += index(0,0,1, strides);
     }
 }
 
