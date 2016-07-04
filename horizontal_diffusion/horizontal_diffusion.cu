@@ -84,8 +84,6 @@ __global__ void cukernel(
             }
         }
 
-        __syncthreads();
-
         if (is_in_domain< 0, 0, -1, 0 >(iblock_pos, jblock_pos, block_size_i, block_size_j)) {
             fly[cache_index(iblock_pos, jblock_pos)] =
                 lap[cache_index(iblock_pos, jblock_pos + 1)] - lap[cache_index(iblock_pos, jblock_pos)];
