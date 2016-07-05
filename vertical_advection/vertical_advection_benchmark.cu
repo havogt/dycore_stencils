@@ -132,7 +132,7 @@ TEST(HorizontalDiffusion, Test)
     repo.update_host("vtens_stage");
     repo.update_host("wtens_stage");
 
-    verifier verif(domain, halo, 1e-11);
+    verifier verif(domain, halo, 1e-10);
     ASSERT_TRUE(verif.verify(repo.field_h("utens_stage_ref"), repo.field_h("utens_stage")));
     ASSERT_TRUE(verif.verify(repo.field_h("vtens_stage_ref"), repo.field_h("vtens_stage")));
     ASSERT_TRUE(verif.verify(repo.field_h("wtens_stage_ref"), repo.field_h("wtens_stage")));
@@ -145,4 +145,3 @@ TEST(HorizontalDiffusion, Test)
 
     std::cout << "Time for VERTICAL ADVECTION: " << time.total_time() << std::endl;
 }
-
