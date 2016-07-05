@@ -21,24 +21,24 @@ inline __device__ unsigned int cache_index(const unsigned int ipos, const unsign
 }
 
 __global__ void cukernel(Real *u_stage,
-    Real *wcon,
-    Real *u_pos,
-    Real *utens,
-    Real *ccol,
-    Real *dcol,
-    Real *datacol,
-    Real *utens_stage,
-    Real *v_stage,
-    Real *v_pos,
-    Real *vtens,
-    Real *vtens_stage,
-    Real *w_stage,
-    Real *w_pos,
-    Real *wtens,
-    Real *wtens_stage,
-    const IJKSize domain,
-    const IJKSize halo,
-    const IJKSize strides) {
+                         Real *u_pos,
+                         Real *utens,
+                         Real *utens_stage,
+                         Real *v_stage,
+                         Real *v_pos,
+                         Real *vtens,
+                         Real *vtens_stage,
+                         Real *w_stage,
+                         Real *w_pos,
+                         Real *wtens,
+                         Real *wtens_stage,
+                         Real *ccol,
+                         Real *dcol,
+                         Real *wcon,
+                         Real *datacol,
+                         const IJKSize domain,
+                         const IJKSize halo,
+                         const IJKSize strides) {
 
     const IJKSize strides_ = strides;
     unsigned int ipos, jpos;
@@ -201,24 +201,25 @@ void launch_kernel(repository &repo, timer_cuda* time) {
     Real *datacol = repo.field_d("datacol");
 
     if(time) time->start();
-    cukernel<<< blocks, threads, 0 >>>(u_stage,
-        wcon,
-        u_pos,
-        utens,
-        ccol,
-        dcol,
-        datacol,
-        utens_stage,
-        v_stage,
-        v_pos,
-        vtens,
-        vtens_stage,
-        w_stage,
-        w_pos,
-        wtens,
-        wtens_stage,
-        domain,
-        halo,
-        strides);
+    cukernel<<< blocks, threads, 0 >>>(
+                                       u_stage,
+                                       u_pos,
+                                       utens,
+                                       utens_stage,
+                                       v_stage,
+                                       v_pos,
+                                       vtens,
+                                       vtens_stage,
+                                       w_stage,
+                                       w_pos,
+                                       wtens,
+                                       wtens_stage,
+                                       ccol,
+                                       dcol,
+                                       wcon,
+                                       datacol,
+                                       domain,
+                                       halo,
+                                       strides);
     if(time) time->pause();
 }
