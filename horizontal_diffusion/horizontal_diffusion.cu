@@ -15,7 +15,7 @@
 
 #define PADDED_BOUNDARY 1
 
-inline __device__ unsigned int cache_index(const unsigned int ipos, const unsigned int jpos) {
+inline __device__ unsigned int cache_index(const int ipos, const int jpos) {
     return (ipos + PADDED_BOUNDARY) +
            (jpos + HALO_BLOCK_Y_MINUS) * (BLOCK_X_SIZE + HALO_BLOCK_X_MINUS + HALO_BLOCK_X_PLUS);
 }
