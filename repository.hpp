@@ -5,7 +5,7 @@
 #include <cuda_runtime.h>
 #include "domain.hpp"
 #include "utils.hpp"
-
+#include "Definitions.hpp"
 struct repository {
 
     repository(IJKSize domain, IJKSize halo)

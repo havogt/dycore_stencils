@@ -29,4 +29,4 @@ FILE(GLOB_RECURSE COMMON_INC "*.hpp")
 
 add_subdirectory( horizontal_diffusion )
 add_subdirectory( vertical_advection )
-
+add_subdirectory( fast_waves_uv )
