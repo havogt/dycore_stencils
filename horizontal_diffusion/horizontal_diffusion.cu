@@ -7,19 +7,20 @@
 
 class BlockSyncer {
 private:
-    bool dir;
+    unsigned int cnt;
     volatile unsigned int* lock_var;
 
 public:
-    __device__ BlockSyncer(volatile unsigned int* lock_var)
-        : dir(false)
+    __device__ inline BlockSyncer(volatile unsigned int* lock_var)
+        : cnt(0)
         , lock_var(lock_var){};
-    __device__ void sync()
+    __device__ inline void sync()
     {
+        //__syncthreads();
         if(threadIdx.x == 0 && threadIdx.y == 0 && threadIdx.z == 0) {
-            dir = !dir;
-            atomicAdd((unsigned int*)lock_var, dir ? 1 : -1);
-            while(gridDim.x * gridDim.y * gridDim.z * dir != *lock_var)
+            cnt++;
+            atomicAdd((unsigned int*)lock_var, 1);
+            while(gridDim.x * gridDim.y * gridDim.z * cnt != *lock_var)
                 ;
         }
         __syncthreads();
@@ -122,6 +123,7 @@ __global__ void cukernel(
         }
 
         __syncthreads();
+        blk.sync();
 
         if (is_in_domain< 0, 0, 0, 0 >(iblock_pos, jblock_pos, block_size_i, block_size_j)) {
             out[index_] =
