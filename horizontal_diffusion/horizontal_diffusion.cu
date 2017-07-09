@@ -4,6 +4,28 @@
 #include "horizontal_diffusion_reference.hpp"
 #include "../functions.hpp"
 
+
+class BlockSyncer {
+private:
+    bool dir;
+    volatile unsigned int* lock_var;
+
+public:
+    __device__ BlockSyncer(volatile unsigned int* lock_var)
+        : dir(false)
+        , lock_var(lock_var){};
+    __device__ void sync()
+    {
+        if(threadIdx.x == 0 && threadIdx.y == 0 && threadIdx.z == 0) {
+            dir = !dir;
+            atomicAdd((unsigned int*)lock_var, dir ? 1 : -1);
+            while(gridDim.x * gridDim.y * gridDim.z * dir != *lock_var)
+                ;
+        }
+        __syncthreads();
+    }
+};
+
 #define BLOCK_X_SIZE 32
 #define BLOCK_Y_SIZE 8
 
@@ -21,7 +43,9 @@ inline __device__ unsigned int cache_index(const int ipos, const int jpos) {
 }
 
 __global__ void cukernel(
-    Real *in, Real *out, Real *coeff, const IJKSize domain, const IJKSize halo, const IJKSize strides) {
+    Real *in, Real *out, Real *coeff, const IJKSize domain, const IJKSize halo, const IJKSize strides, volatile unsigned int* lock) {
+
+    BlockSyncer blk( lock );
 
     unsigned int ipos, jpos;
     int iblock_pos, jblock_pos;
@@ -75,6 +99,7 @@ __global__ void cukernel(
         }
 
         __syncthreads();
+        blk.sync();
 
         if (is_in_domain< -1, 0, 0, 0 >(iblock_pos, jblock_pos, block_size_i, block_size_j)) {
             flx[cache_index(iblock_pos, jblock_pos)] =
@@ -111,6 +136,11 @@ __global__ void cukernel(
 }
 
 void launch_kernel(repository &repo, timer_cuda* time) {
+    unsigned int zero = 0;
+    unsigned int* lock;
+    cudaMalloc( &lock, sizeof(unsigned int) );
+    cudaMemcpy( lock, &zero, sizeof(unsigned int), cudaMemcpyHostToDevice );
+
     IJKSize domain = repo.domain();
     IJKSize halo = repo.halo();
 
@@ -131,6 +161,6 @@ void launch_kernel(repository &repo, timer_cuda* time) {
     Real *coeff = repo.field_d("coeff");
 
     if(time) time->start();
-    cukernel<<< blocks, threads, 0 >>>(in, out, coeff, domain, halo, strides);
+    cukernel<<< blocks, threads, 0 >>>(in, out, coeff, domain, halo, strides, lock);
     if(time) time->pause();
 }
